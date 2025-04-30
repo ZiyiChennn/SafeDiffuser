@@ -178,7 +178,7 @@ class GaussianDiffusion(nn.Module):
             # x, b_min = self.GD(x_t, x)  # truncate method
             # x, b_min = self.Shield(x_t, x)  # classifier guidance or potential-based method
             # x, b_min = self.invariance(x_t, x)  # RoS diffuser
-            x, b_min = self.invariance_cf(x_t, x)   #RoS diffuser, closed form
+            # x, b_min = self.invariance_cf(x_t, x)   #RoS diffuser, closed form
             # x, b_min = self.invariance_cpx(x_t, x)  #RoS diffuser with complex safety specification
             # x, b_min = self.invariance_cpx_cf(x_t, x) #RoS diffuser with complex safety specification, closed form
 
