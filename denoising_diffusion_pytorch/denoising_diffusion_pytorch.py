@@ -401,12 +401,12 @@ class GaussianDiffusion(nn.Module):
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
         xp1 = model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
-
+        b_min = 0 # training only
         #######################################################################################choose one
         # xp1, b_min = self.GD(x, xp1)  # classifier guidance or potential based method
         # xp1, b_min = self.Shield(x, xp1) # truncate method
         # xp1, b_min = self.invariance(x, xp1) # RoS diffuser
-        xp1, b_min = self.invariance_cf(x, xp1)  # RoS diffuser closed-form
+        # xp1, b_min = self.invariance_cf(x, xp1)  # RoS diffuser closed-form
         # xp1, b_min = self.invariance_cpx(x, xp1) # RoS diffuser with complex safety specification
         # xp1, b_min = self.invariance_cpx_cf(x, xp1) # RoS diffuser with complex safety specification, closed-form
 
