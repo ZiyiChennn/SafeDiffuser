@@ -7,7 +7,7 @@ import pdb
 #-----------------------------------------------------------------------------#
 
 class Parser(utils.Parser):
-    dataset: str = 'walker2d-medium-replay-v2'
+    dataset: str = 'hopper-medium-replay-v2'
     config: str = 'config.locomotion'
 
 args = Parser().parse_args('values')
@@ -110,7 +110,7 @@ print('✓')
 #--------------------------------- main loop ---------------------------------#
 #-----------------------------------------------------------------------------#
 
-n_epochs = int(args.n_train_steps // args.n_steps_per_epoch)
+n_epochs = int(args.n_train_steps // args.n_steps_per_epoch)  #n_epchs 20,  n_train_steps  2x10^5, n_steps_per_epoch  10^4
 
 for i in range(n_epochs):
     print(f'Epoch {i} / {n_epochs} | {args.savepath}')

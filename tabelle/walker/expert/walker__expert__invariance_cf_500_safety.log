@@ -1,0 +1,1657 @@
+[ utils/colab ] Warning: not importing colab dependencies
+[ utils/setup ] Reading config: config.locomotion:walker2d_medium_expert_v2
+[ utils/setup ] Not using overrides | config: config.locomotion | dataset: walker2d_medium_expert_v2
+[ utils/setup ] Found extras: ['--logbase', 'logs']
+[ utils/setup ] Overriding config | logbase : logs --> logs
+[ utils/setup ] Lazy fstring | diffusion_loadpath : f:diffusion/defaults_H{horizon}_T{n_diffusion_steps} --> diffusion/defaults_H600_T20
+[ utils/setup ] Lazy fstring | value_loadpath : f:values/defaults_H{horizon}_T{n_diffusion_steps}_d{discount} --> values/defaults_H600_T20_d0.99
+[ utils/setup ] Setting loadbase: logs
+[ utils/setup ] Setting exp_name to: plans/H600_T20_d0.99
+[ utils/setup ] Saved args to logs/walker2d-medium-expert-v2/plans/H600_T20_d0.99/40/args.json
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/diffusion/defaults_H600_T20/dataset_config.pkl
+
+[utils/config ] Config: <class 'diffuser.datasets.sequence.SequenceDataset'>
+    env: walker2d-medium-expert-v2
+    horizon: 600
+    max_path_length: 1000
+    normalizer: GaussianNormalizer
+    preprocess_fns: []
+    use_padding: True
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/diffusion/defaults_H600_T20/render_config.pkl
+
+[utils/config ] Config: <class 'diffuser.utils.rendering.MuJoCoRenderer'>
+    env: walker2d-medium-expert-v2
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/diffusion/defaults_H600_T20/model_config.pkl
+
+[utils/config ] Config: <class 'diffuser.models.temporal.TemporalUnet'>
+    attention: False
+    cond_dim: 17
+    dim_mults: (1, 2, 4, 8)
+    horizon: 600
+    transition_dim: 23
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/diffusion/defaults_H600_T20/diffusion_config.pkl
+
+[utils/config ] Config: <class 'diffuser.models.diffusion.GaussianDiffusion'>
+    action_dim: 6
+    action_weight: 10
+    clip_denoised: False
+    horizon: 600
+    loss_discount: 1
+    loss_type: l2
+    loss_weights: None
+    n_timesteps: 20
+    observation_dim: 17
+    predict_epsilon: False
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/diffusion/defaults_H600_T20/trainer_config.pkl
+
+[utils/config ] Config: <class 'diffuser.utils.training.Trainer'>
+    bucket: None
+    ema_decay: 0.995
+    gradient_accumulate_every: 2
+    label_freq: 200000
+    n_reference: 8
+    results_folder: logs/walker2d-medium-expert-v2/diffusion/defaults_H600_T20
+    sample_freq: 20000
+    save_freq: 20000
+    save_parallel: False
+    train_batch_size: 32
+    train_lr: 0.0002
+
+[ datasets/buffer ] Finalized replay buffer | 2190 episodes
+[ datasets/buffer ] Fields:
+    actions: (2190, 1000, 6)
+    infos/action_log_probs: (2190, 1000, 1)
+    infos/qpos: (2190, 1000, 9)
+    infos/qvel: (2190, 1000, 9)
+    next_observations: (2190, 1000, 17)
+    observations: (2190, 1000, 17)
+    rewards: (2190, 1000, 1)
+    terminals: (2190, 1000, 1)
+    timeouts: (2190, 1000, 1)
+    normed_observations: (2190, 1000, 17)
+    normed_actions: (2190, 1000, 6)
+[ models/temporal ] Channel dimensions: [(23, 32), (32, 64), (64, 128), (128, 256)]
+[(23, 32), (32, 64), (64, 128), (128, 256)]
+
+[ utils/serialization ] Loading model epoch: 800000
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/values/defaults_H600_T20_d0.99/dataset_config.pkl
+
+[utils/config ] Config: <class 'diffuser.datasets.sequence.ValueDataset'>
+    discount: 0.99
+    env: walker2d-medium-expert-v2
+    horizon: 600
+    max_path_length: 1000
+    normalizer: LimitsNormalizer
+    normed: False
+    preprocess_fns: []
+    termination_penalty: -100
+    use_padding: True
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/values/defaults_H600_T20_d0.99/render_config.pkl
+
+[utils/config ] Config: <class 'diffuser.utils.rendering.MuJoCoRenderer'>
+    env: walker2d-medium-expert-v2
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/values/defaults_H600_T20_d0.99/model_config.pkl
+
+[utils/config ] Config: <class 'diffuser.models.temporal.ValueFunction'>
+    cond_dim: 17
+    dim_mults: (1, 2, 4, 8)
+    horizon: 600
+    transition_dim: 23
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/values/defaults_H600_T20_d0.99/diffusion_config.pkl
+
+[utils/config ] Config: <class 'diffuser.models.diffusion.ValueDiffusion'>
+    action_dim: 6
+    horizon: 600
+    loss_type: value_l2
+    n_timesteps: 20
+    observation_dim: 17
+
+[ utils/serialization ] Loaded config from logs/walker2d-medium-expert-v2/values/defaults_H600_T20_d0.99/trainer_config.pkl
+
+[utils/config ] Config: <class 'diffuser.utils.training.Trainer'>
+    bucket: None
+    ema_decay: 0.995
+    gradient_accumulate_every: 2
+    label_freq: 40000
+    n_reference: 8
+    results_folder: logs/walker2d-medium-expert-v2/values/defaults_H600_T20_d0.99
+    sample_freq: 0
+    save_freq: 1000
+    save_parallel: False
+    train_batch_size: 32
+    train_lr: 0.0002
+
+[ datasets/buffer ] Finalized replay buffer | 2190 episodes
+[ datasets/buffer ] Fields:
+    actions: (2190, 1000, 6)
+    infos/action_log_probs: (2190, 1000, 1)
+    infos/qpos: (2190, 1000, 9)
+    infos/qvel: (2190, 1000, 9)
+    next_observations: (2190, 1000, 17)
+    observations: (2190, 1000, 17)
+    rewards: (2190, 1000, 1)
+    terminals: (2190, 1000, 1)
+    timeouts: (2190, 1000, 1)
+    normed_observations: (2190, 1000, 17)
+    normed_actions: (2190, 1000, 6)
+[(23, 32), (32, 64), (64, 128), (128, 256)]
+
+[ utils/serialization ] Loading model epoch: 160000
+
+[ utils/config ] Imported diffuser.sampling:ValueGuide
+
+[utils/config ] Config: <class 'diffuser.utils.logger.Logger'>
+    logpath: logs/walker2d-medium-expert-v2/plans/H600_T20_d0.99/40
+    max_render: 8
+    renderer: <diffuser.utils.rendering.MuJoCoRenderer object at 0x7f6929eeb8e0>
+    vis_freq: 100
+
+[ utils/config ] Imported diffuser.sampling:GuidedPolicy
+
+[F                                                                                                    
+[Ft: 0 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 1 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 2 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 3 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 4 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 5 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 6 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 7 | safety: 0.7662
+
+[F                                                                                                    
+[Ft: 8 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 9 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 10 | safety: 0.2096
+
+[F                                                                                                    
+[Ft: 11 | safety: 0.5023
+
+[F                                                                                                    
+[Ft: 12 | safety: 0.6164
+
+[F                                                                                                    
+[Ft: 13 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 14 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 15 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 16 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 17 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 18 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 19 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 20 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 21 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 22 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 23 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 24 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 25 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 26 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 27 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 28 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 29 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 30 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 31 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 32 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 33 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 34 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 35 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 36 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 37 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 38 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 39 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 40 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 41 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 42 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 43 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 44 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 45 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 46 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 47 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 48 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 49 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 50 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 51 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 52 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 53 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 54 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 55 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 56 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 57 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 58 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 59 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 60 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 61 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 62 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 63 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 64 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 65 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 66 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 67 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 68 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 69 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 70 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 71 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 72 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 73 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 74 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 75 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 76 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 77 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 78 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 79 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 80 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 81 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 82 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 83 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 84 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 85 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 86 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 87 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 88 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 89 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 90 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 91 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 92 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 93 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 94 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 95 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 96 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 97 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 98 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 99 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 100 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 101 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 102 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 103 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 104 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 105 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 106 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 107 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 108 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 109 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 110 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 111 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 112 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 113 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 114 | safety: -0.1091
+
+[F                                                                                                    
+[Ft: 115 | safety: -0.2247
+
+[F                                                                                                    
+[Ft: 116 | safety: -0.3330
+
+[F                                                                                                    
+[Ft: 117 | safety: -0.4339
+
+[F                                                                                                    
+[Ft: 118 | safety: -0.5276
+
+[F                                                                                                    
+[Ft: 119 | safety: -0.6150
+
+[F                                                                                                    
+[Ft: 120 | safety: -0.6965
+
+[F                                                                                                    
+[Ft: 121 | safety: -0.7716
+
+[F                                                                                                    
+[Ft: 122 | safety: -0.8405
+
+[F                                                                                                    
+[Ft: 123 | safety: -0.9027
+
+[F                                                                                                    
+[Ft: 124 | safety: -0.9579
+
+[F                                                                                                    
+[Ft: 125 | safety: -1.0065
+
+[F                                                                                                    
+[Ft: 126 | safety: -1.0487
+
+[F                                                                                                    
+[Ft: 127 | safety: -1.0843
+
+[F                                                                                                    
+[Ft: 128 | safety: -1.1130
+
+[F                                                                                                    
+[Ft: 129 | safety: -1.1350
+
+[F                                                                                                    
+[Ft: 130 | safety: -1.1509
+
+[F                                                                                                    
+[Ft: 131 | safety: -1.1607
+
+[F                                                                                                    
+[Ft: 132 | safety: -1.1643
+
+[F                                                                                                    
+[Ft: 133 | safety: -1.1617
+
+[F                                                                                                    
+[Ft: 134 | safety: -1.1529
+
+[F                                                                                                    
+[Ft: 135 | safety: -1.1381
+
+[F                                                                                                    
+[Ft: 136 | safety: -1.1168
+
+[F                                                                                                    
+[Ft: 137 | safety: -1.0891
+
+[F                                                                                                    
+[Ft: 138 | safety: -1.0548
+
+[F                                                                                                    
+[Ft: 139 | safety: -1.0138
+
+[F                                                                                                    
+[Ft: 140 | safety: -0.9660
+
+[F                                                                                                    
+[Ft: 141 | safety: -0.9115
+
+[F                                                                                                    
+[Ft: 142 | safety: -0.8507
+
+[F                                                                                                    
+[Ft: 143 | safety: -0.7831
+
+[F                                                                                                    
+[Ft: 144 | safety: -0.7091
+
+[F                                                                                                    
+[Ft: 145 | safety: -0.6280
+
+[F                                                                                                    
+[Ft: 146 | safety: -0.5402
+
+[F                                                                                                    
+[Ft: 147 | safety: -0.4497
+
+[F                                                                                                    
+[Ft: 148 | safety: -0.3739
+
+[F                                                                                                    
+[Ft: 149 | safety: -0.3081
+
+[F                                                                                                    
+[Ft: 150 | safety: -0.2492
+
+[F                                                                                                    
+[Ft: 151 | safety: -0.2001
+
+[F                                                                                                    
+[Ft: 152 | safety: -0.1647
+
+[F                                                                                                    
+[Ft: 153 | safety: -0.1413
+
+[F                                                                                                    
+[Ft: 154 | safety: -0.1274
+
+[F                                                                                                    
+[Ft: 155 | safety: -0.1214
+
+[F                                                                                                    
+[Ft: 156 | safety: -0.1214
+
+[F                                                                                                    
+[Ft: 157 | safety: -0.1291
+
+[F                                                                                                    
+[Ft: 158 | safety: -0.1431
+
+[F                                                                                                    
+[Ft: 159 | safety: -0.1620
+
+[F                                                                                                    
+[Ft: 160 | safety: -0.1876
+
+[F                                                                                                    
+[Ft: 161 | safety: -0.2190
+
+[F                                                                                                    
+[Ft: 162 | safety: -0.2489
+
+[F                                                                                                    
+[Ft: 163 | safety: -0.2692
+
+[F                                                                                                    
+[Ft: 164 | safety: -0.2806
+
+[F                                                                                                    
+[Ft: 165 | safety: -0.2836
+
+[F                                                                                                    
+[Ft: 166 | safety: -0.2812
+
+[F                                                                                                    
+[Ft: 167 | safety: -0.2747
+
+[F                                                                                                    
+[Ft: 168 | safety: -0.2588
+
+[F                                                                                                    
+[Ft: 169 | safety: -0.2355
+
+[F                                                                                                    
+[Ft: 170 | safety: -0.2082
+
+[F                                                                                                    
+[Ft: 171 | safety: -0.1742
+
+[F                                                                                                    
+[Ft: 172 | safety: -0.1342
+
+[F                                                                                                    
+[Ft: 173 | safety: -0.0860
+
+[F                                                                                                    
+[Ft: 174 | safety: -0.0280
+
+[F                                                                                                    
+[Ft: 175 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 176 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 177 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 178 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 179 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 180 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 181 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 182 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 183 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 184 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 185 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 186 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 187 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 188 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 189 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 190 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 191 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 192 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 193 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 194 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 195 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 196 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 197 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 198 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 199 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 200 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 201 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 202 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 203 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 204 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 205 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 206 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 207 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 208 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 209 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 210 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 211 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 212 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 213 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 214 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 215 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 216 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 217 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 218 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 219 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 220 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 221 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 222 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 223 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 224 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 225 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 226 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 227 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 228 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 229 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 230 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 231 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 232 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 233 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 234 | safety: -0.0260
+
+[F                                                                                                    
+[Ft: 235 | safety: -0.0823
+
+[F                                                                                                    
+[Ft: 236 | safety: -0.1321
+
+[F                                                                                                    
+[Ft: 237 | safety: -0.1755
+
+[F                                                                                                    
+[Ft: 238 | safety: -0.2117
+
+[F                                                                                                    
+[Ft: 239 | safety: -0.2411
+
+[F                                                                                                    
+[Ft: 240 | safety: -0.2639
+
+[F                                                                                                    
+[Ft: 241 | safety: -0.2799
+
+[F                                                                                                    
+[Ft: 242 | safety: -0.2896
+
+[F                                                                                                    
+[Ft: 243 | safety: -0.2925
+
+[F                                                                                                    
+[Ft: 244 | safety: -0.2890
+
+[F                                                                                                    
+[Ft: 245 | safety: -0.2786
+
+[F                                                                                                    
+[Ft: 246 | safety: -0.2612
+
+[F                                                                                                    
+[Ft: 247 | safety: -0.2368
+
+[F                                                                                                    
+[Ft: 248 | safety: -0.2058
+
+[F                                                                                                    
+[Ft: 249 | safety: -0.1681
+
+[F                                                                                                    
+[Ft: 250 | safety: -0.1241
+
+[F                                                                                                    
+[Ft: 251 | safety: -0.0742
+
+[F                                                                                                    
+[Ft: 252 | safety: -0.0173
+
+[F                                                                                                    
+[Ft: 253 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 254 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 255 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 256 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 257 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 258 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 259 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 260 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 261 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 262 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 263 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 264 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 265 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 266 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 267 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 268 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 269 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 270 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 271 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 272 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 273 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 274 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 275 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 276 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 277 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 278 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 279 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 280 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 281 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 282 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 283 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 284 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 285 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 286 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 287 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 288 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 289 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 290 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 291 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 292 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 293 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 294 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 295 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 296 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 297 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 298 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 299 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 300 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 301 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 302 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 303 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 304 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 305 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 306 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 307 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 308 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 309 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 310 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 311 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 312 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 313 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 314 | safety: -0.0825
+
+[F                                                                                                    
+[Ft: 315 | safety: -0.2096
+
+[F                                                                                                    
+[Ft: 316 | safety: -0.3279
+
+[F                                                                                                    
+[Ft: 317 | safety: -0.4384
+
+[F                                                                                                    
+[Ft: 318 | safety: -0.5420
+
+[F                                                                                                    
+[Ft: 319 | safety: -0.6380
+
+[F                                                                                                    
+[Ft: 320 | safety: -0.7263
+
+[F                                                                                                    
+[Ft: 321 | safety: -0.8082
+
+[F                                                                                                    
+[Ft: 322 | safety: -0.8850
+
+[F                                                                                                    
+[Ft: 323 | safety: -0.9563
+
+[F                                                                                                    
+[Ft: 324 | safety: -1.0201
+
+[F                                                                                                    
+[Ft: 325 | safety: -1.0764
+
+[F                                                                                                    
+[Ft: 326 | safety: -1.1269
+
+[F                                                                                                    
+[Ft: 327 | safety: -1.1713
+
+[F                                                                                                    
+[Ft: 328 | safety: -1.2095
+
+[F                                                                                                    
+[Ft: 329 | safety: -1.2407
+
+[F                                                                                                    
+[Ft: 330 | safety: -1.2643
+
+[F                                                                                                    
+[Ft: 331 | safety: -1.2812
+
+[F                                                                                                    
+[Ft: 332 | safety: -1.2914
+
+[F                                                                                                    
+[Ft: 333 | safety: -1.2938
+
+[F                                                                                                    
+[Ft: 334 | safety: -1.2899
+
+[F                                                                                                    
+[Ft: 335 | safety: -1.2827
+
+[F                                                                                                    
+[Ft: 336 | safety: -1.2711
+
+[F                                                                                                    
+[Ft: 337 | safety: -1.2543
+
+[F                                                                                                    
+[Ft: 338 | safety: -1.2316
+
+[F                                                                                                    
+[Ft: 339 | safety: -1.2027
+
+[F                                                                                                    
+[Ft: 340 | safety: -1.1673
+
+[F                                                                                                    
+[Ft: 341 | safety: -1.1255
+
+[F                                                                                                    
+[Ft: 342 | safety: -1.0773
+
+[F                                                                                                    
+[Ft: 343 | safety: -1.0229
+
+[F                                                                                                    
+[Ft: 344 | safety: -0.9623
+
+[F                                                                                                    
+[Ft: 345 | safety: -0.8949
+
+[F                                                                                                    
+[Ft: 346 | safety: -0.8209
+
+[F                                                                                                    
+[Ft: 347 | safety: -0.7406
+
+[F                                                                                                    
+[Ft: 348 | safety: -0.6544
+
+[F                                                                                                    
+[Ft: 349 | safety: -0.5617
+
+[F                                                                                                    
+[Ft: 350 | safety: -0.4621
+
+[F                                                                                                    
+[Ft: 351 | safety: -0.3654
+
+[F                                                                                                    
+[Ft: 352 | safety: -0.2927
+
+[F                                                                                                    
+[Ft: 353 | safety: -0.2428
+
+[F                                                                                                    
+[Ft: 354 | safety: -0.2116
+
+[F                                                                                                    
+[Ft: 355 | safety: -0.1956
+
+[F                                                                                                    
+[Ft: 356 | safety: -0.1919
+
+[F                                                                                                    
+[Ft: 357 | safety: -0.1878
+
+[F                                                                                                    
+[Ft: 358 | safety: -0.1782
+
+[F                                                                                                    
+[Ft: 359 | safety: -0.1602
+
+[F                                                                                                    
+[Ft: 360 | safety: -0.1344
+
+[F                                                                                                    
+[Ft: 361 | safety: -0.1009
+
+[F                                                                                                    
+[Ft: 362 | safety: -0.0581
+
+[F                                                                                                    
+[Ft: 363 | safety: -0.0054
+
+[F                                                                                                    
+[Ft: 364 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 365 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 366 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 367 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 368 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 369 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 370 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 371 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 372 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 373 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 374 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 375 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 376 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 377 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 378 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 379 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 380 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 381 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 382 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 383 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 384 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 385 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 386 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 387 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 388 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 389 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 390 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 391 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 392 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 393 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 394 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 395 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 396 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 397 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 398 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 399 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 400 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 401 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 402 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 403 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 404 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 405 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 406 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 407 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 408 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 409 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 410 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 411 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 412 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 413 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 414 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 415 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 416 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 417 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 418 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 419 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 420 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 421 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 422 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 423 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 424 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 425 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 426 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 427 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 428 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 429 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 430 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 431 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 432 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 433 | safety: -0.0309
+
+[F                                                                                                    
+[Ft: 434 | safety: -0.1489
+
+[F                                                                                                    
+[Ft: 435 | safety: -0.2583
+
+[F                                                                                                    
+[Ft: 436 | safety: -0.3596
+
+[F                                                                                                    
+[Ft: 437 | safety: -0.4534
+
+[F                                                                                                    
+[Ft: 438 | safety: -0.5407
+
+[F                                                                                                    
+[Ft: 439 | safety: -0.6218
+
+[F                                                                                                    
+[Ft: 440 | safety: -0.6962
+
+[F                                                                                                    
+[Ft: 441 | safety: -0.7638
+
+[F                                                                                                    
+[Ft: 442 | safety: -0.8250
+
+[F                                                                                                    
+[Ft: 443 | safety: -0.8808
+
+[F                                                                                                    
+[Ft: 444 | safety: -0.9304
+
+[F                                                                                                    
+[Ft: 445 | safety: -0.9737
+
+[F                                                                                                    
+[Ft: 446 | safety: -1.0111
+
+[F                                                                                                    
+[Ft: 447 | safety: -1.0425
+
+[F                                                                                                    
+[Ft: 448 | safety: -1.0682
+
+[F                                                                                                    
+[Ft: 449 | safety: -1.0880
+
+[F                                                                                                    
+[Ft: 450 | safety: -1.1009
+
+[F                                                                                                    
+[Ft: 451 | safety: -1.1069
+
+[F                                                                                                    
+[Ft: 452 | safety: -1.1064
+
+[F                                                                                                    
+[Ft: 453 | safety: -1.0993
+
+[F                                                                                                    
+[Ft: 454 | safety: -1.0857
+
+[F                                                                                                    
+[Ft: 455 | safety: -1.0653
+
+[F                                                                                                    
+[Ft: 456 | safety: -1.0383
+
+[F                                                                                                    
+[Ft: 457 | safety: -1.0048
+
+[F                                                                                                    
+[Ft: 458 | safety: -0.9649
+
+[F                                                                                                    
+[Ft: 459 | safety: -0.9185
+
+[F                                                                                                    
+[Ft: 460 | safety: -0.8659
+
+[F                                                                                                    
+[Ft: 461 | safety: -0.8069
+
+[F                                                                                                    
+[Ft: 462 | safety: -0.7419
+
+[F                                                                                                    
+[Ft: 463 | safety: -0.6707
+
+[F                                                                                                    
+[Ft: 464 | safety: -0.5931
+
+[F                                                                                                    
+[Ft: 465 | safety: -0.5092
+
+[F                                                                                                    
+[Ft: 466 | safety: -0.4191
+
+[F                                                                                                    
+[Ft: 467 | safety: -0.3199
+
+[F                                                                                                    
+[Ft: 468 | safety: -0.2121
+
+[F                                                                                                    
+[Ft: 469 | safety: -0.0966
+
+[F                                                                                                    
+[Ft: 470 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 471 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 472 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 473 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 474 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 475 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 476 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 477 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 478 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 479 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 480 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 481 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 482 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 483 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 484 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 485 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 486 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 487 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 488 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 489 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 490 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 491 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 492 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 493 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 494 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 495 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 496 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 497 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 498 | safety: 0.0000
+
+[F                                                                                                    
+[Ft: 499 | safety: 0.0000

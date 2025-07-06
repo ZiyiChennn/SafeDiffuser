@@ -29,6 +29,7 @@ class GuidedPolicy:
         self.diffusion_model.std = self.normalizer.normalizers['observations'].stds
         samples, b_min = self.diffusion_model(conditions, guide=self.guide, verbose=verbose, **self.sample_kwargs)  # debug
         
+        
         trajectories = utils.to_np(samples.trajectories) 
         diffusion = utils.to_np(samples.chains)
 

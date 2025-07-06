@@ -201,7 +201,16 @@ class ValueFunction(nn.Module):
         fc_dim = mid_dim_3 * max(horizon, 1)
 
         self.final_block = nn.Sequential(
+
+
+
+            ##for debug----------------
+            #nn.Linear(fc_dim + time_dim, fc_dim // 2),
+            #nn.Linear(672, fc_dim // 2),    #fc_dim + time_dim, walker2d and hopper: 672, cheetah: 1248
+            ##----------------
+
             nn.Linear(672, fc_dim // 2),    #fc_dim + time_dim, walker2d and hopper: 672, cheetah: 1248
+
             nn.Mish(),
             nn.Linear(fc_dim // 2, out_dim),
         )

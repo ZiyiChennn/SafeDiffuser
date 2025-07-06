@@ -3,10 +3,22 @@ import os
 # os.system('export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/wei/.mujoco/mujoco200/bin')
 # os.system('export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-515')
 # python scripts/plan_guided.py --dataset walker2d-medium-expert-v2 --logbase logs
+
+
 import diffuser.sampling as sampling
 import diffuser.utils as utils
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+##for debug---------------------------------
+CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(CUR_DIR, '..'))
+ 
+
+#os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+##----------------------------------------------
+
+
+
+
 #-----------------------------------------------------------------------------#
 #----------------------------------- setup -----------------------------------#
 #-----------------------------------------------------------------------------#
@@ -16,6 +28,22 @@ class Parser(utils.Parser):
     config: str = 'config.locomotion'
 
 args = Parser().parse_args('plan')
+
+
+## for debug argument ----------------------------
+
+#args.dataset = "walker2d-medium-replay-v2"
+#args = Parser().read_config(args, 'plan')
+#args.logbase = os.path.join(BASE_DIR,"logs/pretrained")
+#args.loadbase = os.path.join(BASE_DIR,"logs/pretrained")
+
+##args.horizon = "600"
+#args.diffusion_loadpath = "diffusion/defaults_H32_T20"
+#args.value_loadpath = "values/defaults_H32_T20_d0.997"
+##print("args.diffusion_loadpath=",args.diffusion_loadpath)
+##print("args.dataset=",args.dataset)
+## -----------------------------------------------
+
 
 args.batch_size = 1
 #-----------------------------------------------------------------------------#
@@ -27,6 +55,8 @@ diffusion_experiment = utils.load_diffusion(
     args.loadbase, args.dataset, args.diffusion_loadpath,
     epoch=args.diffusion_epoch, seed=args.seed,
 )
+
+
 value_experiment = utils.load_diffusion(
     args.loadbase, args.dataset, args.value_loadpath,
     epoch=args.value_epoch, seed=args.seed,
@@ -87,9 +117,24 @@ comp_time = []
 safety = []
 scores = []
 import time
-for kk in range(10):
+import torch
+import random
+import numpy as np
 
+#-------------------------------------------------------------------------------#
+#------------------------------------确定种子------------------------------------#
+fixed_seeds = list(range(1))
+
+#-------------------------------------------------------------------------------#
+for kk in range(3):
+# for kk in range(1): #测bmin
+    seed = fixed_seeds[kk]
+    env.seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     observation = env.reset()
+
 
     ## observations for rendering
     rollout = [observation.copy()]
@@ -102,27 +147,40 @@ for kk in range(10):
         state = env.state_vector().copy()
 
         ## format current observation for conditioning
+        
         conditions = {0: observation}
 
         # utils.colab.run_diffusion(diffusion, dataset, observation, n_samples=1, device=args.device, horizon=320, guide=guide, sample_fn=sampling.n_step_guided_p_sample
         #     )
         start = time.time()
+        #samples.trajectory
         action, samples, diffusion, b_min = policy(conditions, batch_size=args.batch_size, verbose=args.verbose)
         end = time.time()
         if t == 0:
             safety.append(b_min.cpu().numpy())
             comp_time.append(end-start)
         ## execute action in environment
+        
+        # print(f"t: {t} | safety: {b_min.cpu().numpy():.4f}") #测bmin
+
         next_observation, reward, terminal, _ = env.step(action)
 
         ## print reward and score
         total_reward += reward
         score = env.get_normalized_score(total_reward)
+        #print(
+        #   f'step: {kk}/10 | t: {t} | r: {reward:.2f} |  R: {total_reward:.2f} | score: {score:.4f} | '
+        #   f'values: {samples.values} | scale: {args.scale}',
+        #    flush=True,
+        #)
+        #--------------------------------------------------------
+        #-------------------------固定随机种子看obervation和noise--------------------
         print(
             f'step: {kk}/10 | t: {t} | r: {reward:.2f} |  R: {total_reward:.2f} | score: {score:.4f} | '
-            f'values: {samples.values} | scale: {args.scale}',
+            f'values: {samples.values} | scale: {args.scale} | oberservation:{next_observation[0]:.3f}| action:{action[0]:.3f}',
             flush=True,
         )
+        #--------------------------------------------------------
 
         ## update rollout observations
         rollout.append(next_observation.copy())

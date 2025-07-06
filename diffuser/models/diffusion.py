@@ -18,11 +18,17 @@ from .helpers import (
 Sample = namedtuple('Sample', 'trajectories values chains')
 
 
+
 @torch.no_grad()
-def default_sample_fn(model, x, cond, t):
+def default_sample_fn(model, x, cond, t, base_seed=600):
     model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t)
     model_std = torch.exp(0.5 * model_log_variance)
 
+
+
+#---------------------------------------固定随机种子
+    torch.manual_seed(base_seed)
+#----------------------------------
     # no noise when t == 0
     noise = torch.randn_like(x)
     noise[t == 0] = 0
@@ -138,7 +144,7 @@ class GaussianDiffusion(nn.Module):
         else:
             return noise
 
-    def q_posterior(self, x_start, x_t, t):
+    def q_posterior(self, x_start, x_t, t):       #后验
         posterior_mean = (
             extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
             extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
@@ -147,7 +153,7 @@ class GaussianDiffusion(nn.Module):
         posterior_log_variance_clipped = extract(self.posterior_log_variance_clipped, t, x_t.shape)
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
-    def p_mean_variance(self, x, cond, t):
+    def p_mean_variance(self, x, cond, t):    #反向过程均值和方差
         x_recon = self.predict_start_from_noise(x, t=t, noise=self.model(x, cond, t))
 
         if self.clip_denoised:
@@ -160,11 +166,15 @@ class GaussianDiffusion(nn.Module):
         return model_mean, posterior_variance, posterior_log_variance
 
     @torch.no_grad()
-    def p_sample_loop(self, shape, cond, verbose=True, return_chain=False, sample_fn=default_sample_fn, **sample_kwargs): 
+    def p_sample_loop(self, shape, cond, verbose=True, return_chain=False, sample_fn=default_sample_fn, base_seed = 600, **sample_kwargs): 
         device = self.betas.device
-
+        # shape: batch, hor, act_dim+state_dim
         batch_size = shape[0]
+        #------------------------固定随机种子
+        torch.manual_seed(base_seed)
+        #----------------------------
         x = torch.randn(shape, device=device)
+        
         x = apply_conditioning(x, cond, self.action_dim)
 
         chain = [x] if return_chain else None
@@ -196,10 +206,10 @@ class GaussianDiffusion(nn.Module):
             x = apply_conditioning(x, cond, self.action_dim)
 
             ############################ diffuser only, for evaluation purpose
-            # height = 1.4   #1.3    walker2d
-            # height = (height - self.mean[0]) / self.std[0]
-            # b = height - x[:,6:7]  - 0.1*x[:,15:16]
-            # b_min = torch.min(b)
+            height = 1.4   #1.3    walker2d
+            height = (height - self.mean[0]) / self.std[0]
+            b = height - x[:,6:7]  - 0.1*x[:,15:16]
+            b_min = torch.min(b)
 
             # height = 1.6   #1.5      hopper
             # height = (height - self.mean[0]) / self.std[0]
@@ -215,6 +225,13 @@ class GaussianDiffusion(nn.Module):
 
         x, values = sort_by_values(x, values)
         if return_chain: chain = torch.stack(chain, dim=1)
+
+
+        ##for debug train-------------------------------
+        #return Sample(x, values, chain)
+        ##return Sample(x, values, chain), b_min
+        ##------------------------------
+
         return Sample(x, values, chain), b_min
 
     @torch.no_grad()
@@ -813,19 +830,21 @@ class GaussianDiffusion(nn.Module):
 
     #------------------------------------------ training ------------------------------------------#
 
-    def q_sample(self, x_start, t, noise=None):
+    def q_sample(self, x_start, t, noise=None):      #前向
         if noise is None:
             noise = torch.randn_like(x_start)
-
+        
         sample = (
             extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
-            extract(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise
+            extract(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise  #VPSDE
         )
 
         return sample
 
     def p_losses(self, x_start, cond, t):
+        
         noise = torch.randn_like(x_start)
+
 
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         x_noisy = apply_conditioning(x_noisy, cond, self.action_dim)
@@ -854,8 +873,9 @@ class GaussianDiffusion(nn.Module):
 class ValueDiffusion(GaussianDiffusion):
 
     def p_losses(self, x_start, cond, target, t):
+    
         noise = torch.randn_like(x_start)
-
+        
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         x_noisy = apply_conditioning(x_noisy, cond, self.action_dim)
 
