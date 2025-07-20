@@ -27,7 +27,7 @@ def default_sample_fn(model, x, cond, t, base_seed=600):
 
 
 #---------------------------------------固定随机种子
-    torch.manual_seed(base_seed)
+    # torch.manual_seed(base_seed)
 #----------------------------------
     # no noise when t == 0
     noise = torch.randn_like(x)
@@ -171,7 +171,7 @@ class GaussianDiffusion(nn.Module):
         # shape: batch, hor, act_dim+state_dim
         batch_size = shape[0]
         #------------------------固定随机种子
-        torch.manual_seed(base_seed)
+        #torch.manual_seed(base_seed)
         #----------------------------
         x = torch.randn(shape, device=device)
         
@@ -189,7 +189,7 @@ class GaussianDiffusion(nn.Module):
             # x, b_min = self.Shield(x_t, x)  # classifier guidance or potential-based method
             # x, b_min = self.invariance(x_t, x)  # RoS diffuser
             # x, b_min = self.invariance_cf(x_t, x)   #RoS diffuser, closed form
-            # x, b_min = self.invariance_cpx(x_t, x)  #RoS diffuser with complex safety specification
+            x, b_min = self.invariance_cpx(x_t, x)  #RoS diffuser with complex safety specification
             # x, b_min = self.invariance_cpx_cf(x_t, x) #RoS diffuser with complex safety specification, closed form
 
             ##########################################hopper
@@ -206,10 +206,10 @@ class GaussianDiffusion(nn.Module):
             x = apply_conditioning(x, cond, self.action_dim)
 
             ############################ diffuser only, for evaluation purpose
-            height = 1.4   #1.3    walker2d
-            height = (height - self.mean[0]) / self.std[0]
-            b = height - x[:,6:7]  - 0.1*x[:,15:16]
-            b_min = torch.min(b)
+            # height = 1.4   #1.3    walker2d
+            # height = (height - self.mean[0]) / self.std[0]
+            # b = height - x[:,6:7]  - 0.1*x[:,15:16]
+            # b_min = torch.min(b)
 
             # height = 1.6   #1.5      hopper
             # height = (height - self.mean[0]) / self.std[0]

@@ -110,7 +110,7 @@ base = {
     'plan': {
         'guide': 'sampling.ValueGuide',
         'policy': 'sampling.GuidedPolicy',
-        'max_episode_length': 200, #1000,  #500
+        'max_episode_length': 1000,  #500
         'batch_size': 64,
         'preprocess_fns': [],
         'device': 'cuda',

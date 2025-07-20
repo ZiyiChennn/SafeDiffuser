@@ -123,10 +123,10 @@ import numpy as np
 
 #-------------------------------------------------------------------------------#
 #------------------------------------确定种子------------------------------------#
-fixed_seeds = list(range(1))
+fixed_seeds = list(range(10))
 
 #-------------------------------------------------------------------------------#
-for kk in range(3):
+for kk in range(10):
 # for kk in range(1): #测bmin
     seed = fixed_seeds[kk]
     env.seed(seed)
@@ -175,11 +175,19 @@ for kk in range(3):
         #)
         #--------------------------------------------------------
         #-------------------------固定随机种子看obervation和noise--------------------
+        #---------------walker----------------------------------
         print(
             f'step: {kk}/10 | t: {t} | r: {reward:.2f} |  R: {total_reward:.2f} | score: {score:.4f} | '
-            f'values: {samples.values} | scale: {args.scale} | oberservation:{next_observation[0]:.3f}| action:{action[0]:.3f}',
+            f'values: {samples.values} | scale: {args.scale} | oberservation[0]:{observation[0]:.3f}| oberservation[1]:{observation[1]:.3f}|oberservation[2]:{observation[2]:.3f}|oberservation[3]:{observation[3]:.3f}|oberservation[4]:{observation[4]:.3f}|oberservation[5]:{observation[5]:.3f}| oberservation[6]:{observation[6]:.3f}| oberservation[7]:{observation[7]:.3f}| oberservation[8]:{observation[8]:.3f}| oberservation[9]:{observation[9]:.3f}| oberservation[10]:{observation[10]:.3f}| oberservation[11]:{observation[11]:.3f}| oberservation[12]:{observation[12]:.3f}| oberservation[13]:{observation[13]:.3f}| oberservation[14]:{observation[14]:.3f}| oberservation[15]:{observation[15]:.3f}| action[0]:{action[0]:.3f}| action[1]:{action[1]:.3f}| action[2]:{action[2]:.3f}| action[3]:{action[3]:.3f}| action[4]:{action[4]:.3f}| action[5]:{action[5]:.3f}',
             flush=True,
         )
+        #--------------------------------------------------------
+        #---------------hopper----------------------------------
+        '''print(
+            f'step: {kk}/10 | t: {t} | r: {reward:.2f} |  R: {total_reward:.2f} | score: {score:.4f} | '
+            f'values: {samples.values} | scale: {args.scale} | oberservation[0]:{observation[0]:.3f}| oberservation[1]:{observation[1]:.3f}|oberservation[2]:{observation[2]:.3f}|oberservation[3]:{observation[3]:.3f}|oberservation[4]:{observation[4]:.3f}|oberservation[5]:{observation[5]:.3f}| oberservation[6]:{observation[6]:.3f}| oberservation[7]:{observation[7]:.3f}| oberservation[8]:{observation[8]:.3f}| oberservation[9]:{observation[9]:.3f}| oberservation[10]:{observation[10]:.3f}| action[0]:{action[0]:.3f}| action[1]:{action[1]:.3f}| action[2]:{action[2]:.3f}',
+            flush=True,
+        )'''
         #--------------------------------------------------------
 
         ## update rollout observations
