@@ -1,0 +1,17 @@
+env: walker2d-medium-v2
+horizon: 600
+max_path_length: 1000
+state_dim: 17
+action_dim: 6
+diffusion_denoise_time_step: 20
+diffusion_normalizer: GaussianNormalizer
+value_normalizer: LimitsNormalizer
+ema_decay: 0.995
+train_batch_size: 32
+train_lr: 0.0002
+value_termination_penalty: -100.0
+max_n_episode: 1190
+safety: -0.2639462
+score_mean: 0.5887698248025741
+score_std: 0.2912843996566616
+computation_time: 1.252107810974121

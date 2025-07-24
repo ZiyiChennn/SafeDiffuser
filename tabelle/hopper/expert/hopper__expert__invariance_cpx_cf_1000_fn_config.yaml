@@ -1,0 +1,17 @@
+env: hopper-medium-expert-v2
+horizon: 600
+max_path_length: 1000
+state_dim: 11
+action_dim: 3
+diffusion_denoise_time_step: 20
+diffusion_normalizer: GaussianNormalizer
+value_normalizer: LimitsNormalizer
+ema_decay: 0.995
+train_batch_size: 32
+train_lr: 0.0002
+value_termination_penalty: -100.0
+max_n_episode: 3213
+safety: -7.0314854
+score_mean: 0.5012523813334357
+score_std: 0.17409251279443771
+computation_time: 1.0770933866500854
