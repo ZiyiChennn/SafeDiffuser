@@ -5,6 +5,8 @@ import pdb
 from torch.autograd import Variable
 from qpth.qp import QPFunction, QPSolvers
 import einops
+# import matplotlib
+# matplotlib.use("Agg")  # 强制使用非GUI后端
 
 import diffuser.utils as utils
 from .helpers import (
@@ -99,8 +101,12 @@ class GaussianDiffusion(nn.Module):
         self.model = model
         self.norm_mins = 0
         self.norm_maxs = 0
-        self.safe1 = 0
-        self.safe2 = 0
+        #----------debug safe1 safe2--------
+        #self.safe1 = torch.tensor(0.0)
+        #self.safe2 = torch.tensor(0.0)
+        #-----------------------------------
+        #self.safe1 = 0
+        #self.safe2 = 0
 
         betas = cosine_beta_schedule(n_timesteps)
         alphas = 1. - betas
@@ -255,6 +261,7 @@ class GaussianDiffusion(nn.Module):
         #CBF
         b2 = ((xp1[:,2:3] - off_y)/yr)**4 + ((xp1[:,3:4] - off_x)/xr)**4 - 1
 
+  
         self.safe1 = torch.min(b[:,0])
         self.safe2 = torch.min(b2[:,0])
 
@@ -310,6 +317,106 @@ class GaussianDiffusion(nn.Module):
 
         xp1 = xp1.unsqueeze(0)
         return xp1
+#------------------------------ziyi-----------------------------
+
+    @torch.no_grad()   #only for sampling
+    def Shield_umaze(self, x0, xp10):    ##Truncate method
+        x = x0.clone()
+        xp1 = xp10.clone()
+
+        xp1 = xp1.squeeze(0)
+
+        nBatch = x.shape[0]
+  
+
+        #normalize obstacle 1, x-1, y-0  x = 1/12*np.cos(theta) + 5.5/12, y = 1/9*np.sin(theta) + 5/9
+        xr = 2*1.52/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*1.52/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(2.5-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2.5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+        b = 1 - ((xp1[:,2:3] - off_y)/yr)**4 - ((xp1[:,3:4] - off_x)/xr)**4
+
+         #normalize obstacle 2,  x = 1/12*np.sqrt(np.abs(np.cos(theta)))*np.sign(np.cos(theta)) + 5.3/12, y = 1/9*np.sqrt(np.abs(np.sin(theta)))*np.sign(np.sin(theta)) + 2/9
+        xr = 2*1.2/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*0.6/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(2-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2.5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+  
+        b2 = ((xp1[:,2:3] - off_y)/yr)**4 + ((xp1[:,3:4] - off_x)/xr)**4 - 1
+        
+       
+        for k in range(nBatch):
+            if b2[k, 0] < 0: 
+                theta = torch.atan2((xp1[k,2:3] - off_y)/yr, (xp1[k,3:4] - off_x)/xr)
+                xp1[k,2] = yr*torch.sin(theta) + off_y
+                xp1[k,3] = xr*torch.cos(theta) + off_x
+       
+
+
+        b2 = ((xp1[:,2:3] - off_y)/yr)**4 + ((xp1[:,3:4] - off_x)/xr)**4 - 1
+
+       
+   
+        self.safe1 = torch.min(b[:,0])
+        self.safe2 = torch.min(b2[:,0])
+
+        xp1 = xp1.unsqueeze(0)
+        return xp1
+    
+    @torch.no_grad()   #only for sampling
+    def GD_umaze(self, x0, xp10):    #classifier guidance or potential-based method
+
+        x = x0.clone()
+        xp1 = xp10.clone()
+
+        x = x.squeeze(0)
+        xp1 = xp1.squeeze(0)
+
+        nBatch = x.shape[0]
+        ref = xp1 - x
+
+        #normalize obstacle 1, x-1, y-0  x = 1/12*np.cos(theta) + 5.5/12, y = 1/9*np.sin(theta) + 5/9
+        xr = 2*1.52/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*1.52/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(2.5-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2.5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+        b = 1 - ((xp1[:,2:3] - off_y)/yr)**4 - ((xp1[:,3:4] - off_x)/xr)**4
+       
+        
+
+        #normalize obstacle 2,  x = 1/12*np.sqrt(np.abs(np.cos(theta)))*np.sign(np.cos(theta)) + 5.3/12, y = 1/9*np.sqrt(np.abs(np.sin(theta)))*np.sign(np.sin(theta)) + 2/9
+        xr = 2*1.2/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*0.6/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(2-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2.5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+        b2 = ((xp1[:,2:3] - off_y)/yr)**4 + ((xp1[:,3:4] - off_x)/xr)**4 - 1
+    
+        for k in range(nBatch):
+            if b[k, 0] < 0.1:  # 0, 0.2
+                u1 = 0.2/(4*((xp1[k,2:3] - off_y)/yr)/yr)
+                u2 = 0.2/(4*((xp1[k,3:4] - off_x)/xr)/xr)
+                xp1[k,2] = xp1[k,2] + u1*0.001  #note no 0.1/0.01 for GD, but has for potential
+                xp1[k,3] = xp1[k,3] + u2*0.001
+            elif b2[k, 0] < 0.1:  # 0, 0.2
+                u1 = 0.2/(4*((xp1[k,2:3] - off_y)/yr)**3/yr)
+                u2 = 0.2/(4*((xp1[k,3:4] - off_x)/xr)**3/xr)
+                xp1[k,2] = xp1[k,2] + u1*0.001
+                xp1[k,3] = xp1[k,3] + u2*0.001
+
+        self.safe1 = torch.min(b[:,0])
+        self.safe2 = torch.min(b2[:,0])
+
+        xp1 = xp1.unsqueeze(0)
+        return xp1
+#---------------------------------ziyi--------------------------------------------------------------
 
     @torch.no_grad()   #only for sampling
     def invariance_umaze(self, x, xp1):   #  RoS-diffuser for umaze
@@ -1026,9 +1133,81 @@ class GaussianDiffusion(nn.Module):
         # print(out)
         rt = rt.unsqueeze(0)
         return rt        
+    
+        ####----------------------------------------ziyi-------------------------------------
+    def original_diffuser(self, x0, xp10): #original diffuser only  maze2d-large-v1
+        x = x0.clone()
+        xp1 = xp10.clone()
+
+        x = x.squeeze(0)
+        xp1 = xp1.squeeze(0)
+
+        nBatch = x.shape[0]
+        ref = xp1 - x
+
+
+        #normalize obstacle 1, x-1, y-0  x = 1/12*np.cos(theta) + 5.5/12, y = 1/9*np.sin(theta) + 5/9
+        xr = 2*1/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*1/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(5.8-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        b = ((x[:,2:3] - off_y)/yr)**2 + ((x[:,3:4] - off_x)/xr)**2 - 1
+
+        xr = 2*1/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*1/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(5.3-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+        b2 = ((x[:,2:3] - off_y)/yr)**4 + ((x[:,3:4] - off_x)/xr)**4 - 1
+        self.safe1 = torch.min(b[:,0])
+        self.safe2 = torch.min(b2[:,0])
+
+        xp1 = xp1.unsqueeze(0)
+        return xp1
+    
+    def original_diffuser_umaze(self, x0, xp10): #original diffuser only  maze2d-umaze-v1
+        x = x0.clone()
+        xp1 = xp10.clone()
+
+        x = x.squeeze(0)
+        xp1 = xp1.squeeze(0)
+
+        nBatch = x.shape[0]
+        ref = xp1 - x
+
+        #normalize obstacle 1, x-1, y-0  x = 1/12*np.cos(theta) + 5.5/12, y = 1/9*np.sin(theta) + 5/9
+        xr = 2*1.52/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*1.52/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(2.5-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2.5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+        b = 1 - ((x[:,2:3] - off_y)/yr)**4 - ((x[:,3:4] - off_x)/xr)**4
+       
+        
+
+        #normalize obstacle 2,  x = 1/12*np.sqrt(np.abs(np.cos(theta)))*np.sign(np.cos(theta)) + 5.3/12, y = 1/9*np.sqrt(np.abs(np.sin(theta)))*np.sign(np.sin(theta)) + 2/9
+        xr = 2*1.2/(self.norm_maxs[1] - self.norm_mins[1])
+        yr = 2*0.6/(self.norm_maxs[0] - self.norm_mins[0])
+        off_x = 2*(2-0.5 - self.norm_mins[1])/(self.norm_maxs[1] - self.norm_mins[1]) - 1
+        off_y = 2*(2.5-0.5 - self.norm_mins[0])/(self.norm_maxs[0] - self.norm_mins[0]) - 1
+
+        #CBF
+        b2 = ((x[:,2:3] - off_y)/yr)**4 + ((x[:,3:4] - off_x)/xr)**4 - 1
+        self.safe1 = torch.min(b[:,0])
+        self.safe2 = torch.min(b2[:,0])
+
+        xp1 = xp1.unsqueeze(0)
+        return xp1
+    
+        ###-------------------------------------------ziyi--------------------------------------
+
+
 
     @torch.no_grad()
-    def p_sample(self, x, cond, t):
+    def p_sample(self, x, cond, t, diffuser_choice = 1):
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t)
         noise = torch.randn_like(x)
@@ -1036,6 +1215,36 @@ class GaussianDiffusion(nn.Module):
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
 
         xp1 = model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
+
+
+
+        ####----------------------------------------------ziyi------------------------------------------------
+        
+        diffuser_methods = {
+            1: lambda x, xp1, t: self.original_diffuser(x, xp1),
+            2: lambda x, xp1, t: self.GD(x, xp1),
+            3: lambda x, xp1, t: self.Shield(x, xp1),
+            4: lambda x, xp1, t: self.invariance(x, xp1), #local trap
+            5: lambda x, xp1, t: self.invariance_cf(x, xp1), #local trap
+            6: lambda x, xp1, t: self.invariance_relax(x, xp1, t),
+            7: lambda x, xp1, t: self.invariance_relax_cf(x, xp1, t),
+            8: lambda x, xp1, t: self.invariance_time(x, xp1, t), #
+            9: lambda x, xp1, t: self.invariance_time_cf(x, xp1, t), #
+            10: lambda x, xp1, t: self.invariance_relax_narrow(x, xp1, t),
+            11: lambda x, xp1, t: self.GD_umaze(x, xp1),
+            12: lambda x, xp1, t: self.Shield_umaze(x, xp1),
+            13: lambda x, xp1, t: self.invariance_umaze(x, xp1), #local trap
+            14: lambda x, xp1, t: self.invariance_umaze_relax(x, xp1, t),
+            15: lambda x, xp1, t: self.original_diffuser_umaze(x, xp1)
+        }
+
+        x = diffuser_methods.get(diffuser_choice, lambda x, xp1, t: xp1)(x, xp1, t)
+        return x
+    
+        ####--------------------------------------------ziyi-------------------------------------------------
+
+
+
 
         # Note:  choose any one of the below
         #---------------------------------------start--------------------------------------------------#
@@ -1059,7 +1268,7 @@ class GaussianDiffusion(nn.Module):
         # x = self.GD(x, xp1)
 
         ####################### SafeDiffusers 
-        x = xp1 # for training only
+        # x = xp1 # for training only
         # x = self.invariance(x, xp1)    # RoS
         # x = self.invariance_cf(x, xp1)  # RoS closed form
         # x = self.invariance_relax(x, xp1, t) # ReS
@@ -1067,7 +1276,8 @@ class GaussianDiffusion(nn.Module):
         # x = self.invariance_time(x, xp1, t)   # TVS
         # x = self.invariance_time_cf(x, xp1, t)  # TVS closed form
         # x = self.invariance_relax_narrow(x, xp1, t)  # narrow passage case
-
+        
+      
         ####################### Applying SafeDiffusers to only the last 10 steps
         # if t <= 10:  #10
         #     # x = self.invariance_relax(x, xp1, t)  #done
@@ -1107,29 +1317,33 @@ class GaussianDiffusion(nn.Module):
         if return_diffusion: diffusion = [x]
 
         progress = utils.Progress(self.n_timesteps) if verbose else utils.Silent()
+        #------------debug--------------------
         safe1, safe2 = [], []
+        #-----------------------------------
         for i in reversed(range(0, self.n_timesteps)):  #-50 change here for the number of diffusion steps,
             if i < 0:
                 i = 0
             timesteps = torch.full((batch_size,), i, device=device, dtype=torch.long)
             x = self.p_sample(x, cond, timesteps)
             x = apply_conditioning(x, cond, self.action_dim)
+            #--------------debug-----------------
             safe1.append(self.safe1.unsqueeze(0))
             safe2.append(self.safe2.unsqueeze(0))
+            #------------------------------
             progress.update({'t': i})
 
             if return_diffusion: diffusion.append(x)
-        
+        #--------------debug----------------
         self.safe1 = torch.cat(safe1, dim=0)
         self.safe2 = torch.cat(safe2, dim=0)
-
+        #------------------------------------
         progress.close()
         # pdb.set_trace()
         if return_diffusion:
             return x, torch.stack(diffusion, dim=1)
         else:
             return x
-
+    
     @torch.no_grad()
     def conditional_sample(self, cond, *args, horizon=None, return_diffusion = True, **kwargs):
         '''

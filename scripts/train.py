@@ -1,6 +1,7 @@
 import diffuser.utils as utils
 import pdb
-
+import matplotlib
+matplotlib.use('Agg')
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-515
 #export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/wei/.mujoco/mujoco200/bin
 
@@ -120,9 +121,9 @@ print('✓')
 #--------------------------------- main loop ---------------------------------#
 #-----------------------------------------------------------------------------#
 
-n_epochs = int(args.n_train_steps // args.n_steps_per_epoch)
+n_epochs = int(args.n_train_steps // args.n_steps_per_epoch)  #n_train_steps: 2e6, n_steps_per_epoch:10000 n_epochs:200
 
 for i in range(n_epochs):
-    print(f'Epoch {i} / {n_epochs} | {args.savepath}')
+    print(f'Epoch {i} / {n_epochs} | {args.savepath}')  
     trainer.train(n_train_steps=args.n_steps_per_epoch)
 
