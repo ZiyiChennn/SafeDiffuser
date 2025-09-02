@@ -1,0 +1,9 @@
+results:
+  elbo_mean: 0.0
+  elbo_std: 0.0
+  safe1_min: -5.960464477539063e-08
+  safe2_min: 0.0
+  score_mean: 0.955365553220781
+  score_std: 0.5515806783081407
+  computation_time_mean: 3.840948462486267
+  success_rate: 9.0
