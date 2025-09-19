@@ -1,5 +1,6 @@
 import pdb
 import os
+from os.path import join
 # os.system('export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/wei/.mujoco/mujoco200/bin')
 # os.system('export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-515')
 # python scripts/plan_guided.py --dataset walker2d-medium-expert-v2 --logbase logs
@@ -121,6 +122,39 @@ import torch
 import random
 import numpy as np
 
+#-----------------------------ziyi---------------------------------------------#
+def makedirs(dirname):
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
+mode = 14 # Change this to 1-12 as needed
+modes = {
+    1: "diffuser",
+    2: "GD",
+    3: "Shield",
+    4: "invariance",
+    5: "invariance_cf",
+    6: "invariance_cpx",
+    7: "invariance_cpx_cf",
+
+
+    8:  "diffuser_hopper", #0
+    9:  "GD_hopper", #1
+    10: "Shield_hopper",#2
+    11: "invariance_hopper",#3
+    12: "invariance_hopper_cf",#4
+    13: "invariance_hopper_cpx",#5
+    14: "invariance_hopper_cpx_cf",#6
+   
+}
+sub_dir = join(args.savepath, modes.get(mode, "default"))
+makedirs(sub_dir)
+
+plan_observation = []
+plan_action = []
+env_observation = []
+#--------------------------------------------------------------------------------#
+
 #-------------------------------------------------------------------------------#
 #------------------------------------确定种子------------------------------------#
 fixed_seeds = list(range(10))
@@ -155,6 +189,20 @@ for kk in range(10):
         start = time.time()
         #samples.trajectory
         action, samples, diffusion, b_min = policy(conditions, batch_size=args.batch_size, verbose=args.verbose)
+
+        #------------------------------------ziyi---------------------------------
+        e_observation = []
+        e_observation.append(observation)
+        env_observation.append(np.array(e_observation))
+
+
+        p_observation = samples.observations[0]
+        p_action = samples.actions[0]
+
+        plan_observation.append(p_observation)
+        plan_action.append(p_action)
+        
+        #------------------------------------ziyi----------------------------------
         end = time.time()
         if t == 0:
             safety.append(b_min.cpu().numpy())
@@ -178,7 +226,7 @@ for kk in range(10):
         #---------------walker----------------------------------
         print(
             f'step: {kk}/10 | t: {t} | r: {reward:.2f} |  R: {total_reward:.2f} | score: {score:.4f} | '
-            f'values: {samples.values} | scale: {args.scale} | oberservation[0]:{observation[0]:.3f}| oberservation[1]:{observation[1]:.3f}|oberservation[2]:{observation[2]:.3f}|oberservation[3]:{observation[3]:.3f}|oberservation[4]:{observation[4]:.3f}|oberservation[5]:{observation[5]:.3f}| oberservation[6]:{observation[6]:.3f}| oberservation[7]:{observation[7]:.3f}| oberservation[8]:{observation[8]:.3f}| oberservation[9]:{observation[9]:.3f}| oberservation[10]:{observation[10]:.3f}| oberservation[11]:{observation[11]:.3f}| oberservation[12]:{observation[12]:.3f}| oberservation[13]:{observation[13]:.3f}| oberservation[14]:{observation[14]:.3f}| oberservation[15]:{observation[15]:.3f}| action[0]:{action[0]:.3f}| action[1]:{action[1]:.3f}| action[2]:{action[2]:.3f}| action[3]:{action[3]:.3f}| action[4]:{action[4]:.3f}| action[5]:{action[5]:.3f}',
+            f'values: {samples.values} | scale: {args.scale}',
             flush=True,
         )
         #--------------------------------------------------------
@@ -208,7 +256,46 @@ import numpy as np
 comp_time = np.array(comp_time)
 safety = np.array(safety)
 scores = np.array(scores)
+ 
+#--------------------ziyi----------------------------------
+makedirs(sub_dir)
+torch.save(torch.tensor(np.array(env_observation)), join(sub_dir, 'env_observation.pt'))
+torch.save(torch.tensor(np.array(plan_observation)), join(sub_dir, 'plan_observation.pt'))
+torch.save(torch.tensor(np.array(plan_action)), join(sub_dir, 'plan_action.pt'))
 
+
+import yaml
+
+results = {
+    
+  
+    "safety": float(np.min(safety)),
+    "score_mean": float(np.mean(scores)),
+    "score_std": float(np.std(scores)),
+    "computation_time_mean": float(np.mean(comp_time)),
+}
+
+# 组织需要保存的参数
+# 确保这些参数在你的 args 对象中存在
+
+
+# 合并所有数据
+data_to_save = {
+    "results": results,
+
+}
+
+# 构建 YAML 文件的完整路径
+yaml_path = join(sub_dir, 'summary.yaml')
+
+# 将数据保存为 YAML 文件
+try:
+    with open(yaml_path, 'w') as f:
+        yaml.dump(data_to_save, f, sort_keys=False) # sort_keys=False 保持字典的原始顺序
+    print(f"Summary saved to {yaml_path}")
+except Exception as e:
+    print(f"Error saving YAML file: {e}")
+#--------------------ziyi-------------------------------------
 print("safety: ", np.min(safety))
 print("score mean: ", np.mean(scores))
 print("score std: ", np.std(scores))

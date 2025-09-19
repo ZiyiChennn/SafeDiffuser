@@ -165,7 +165,7 @@ class MuJoCoRenderer:
         composite = np.ones_like(sample_images[0]) * 255
         import torch
         # import pdb; pdb.set_trace()
-        composite[81:83,:,:] = torch.tensor([255,0,0]).expand(2,256,3)  #172, 82:84, walker2d roof    ####1024 11/5/2024
+        composite[81:83,:,:] = torch.tensor([255,0,0]).expand(2,1024,3)  #172, 82:84, walker2d roof    ####1024 11/5/2024  #用1024
         # composite[67:69,:,:] = torch.tensor([255,0,0]).expand(2,1024,3)  #172, 82:84, hopper roof 
         # composite[120:122,:,:] = torch.tensor([255,0,0]).expand(2,1024,3)  #172, 82:84, halfcheetah roof
         i = 0

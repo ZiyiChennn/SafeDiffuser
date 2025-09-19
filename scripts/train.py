@@ -7,7 +7,12 @@ import os
 #-----------------------------------------------------------------------------#
 
 class Parser(utils.Parser):
-    dataset: str = 'hopper-medium-replay-v2'
+    methods = {
+                0: 'walkr2d-medium-expert-v2',
+                1: 'walker2d-medium-replay-v2'
+    }
+    method = methods[0]
+    dataset: str = method
     config: str = 'config.locomotion'
 
 args = Parser().parse_args('diffusion')

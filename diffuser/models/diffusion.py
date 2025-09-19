@@ -183,13 +183,44 @@ class GaussianDiffusion(nn.Module):
             t = make_timesteps(batch_size, i, device)
             x_t = x.clone()
             x, values = sample_fn(self, x, cond, t, **sample_kwargs)
+            
+            ###--------------------------ziyi----------------------------------------
+            method_choice = 14 # <--- Change this line to switch methods
+
+            methods = {
+                1: self.diffuser, #walker2d_diffuser'
+                2: self.GD,#walker2d_GD'
+                3: self.Shield,#'walker2d_Shield'
+                4: self.invariance,#'walker2d_invariance'
+                5: self.invariance_cf,#walker2d_invariance_cf
+                6: self.invariance_cpx,#walker2d_invariance_cpx
+                7: self.invariance_cpx_cf,#walker2d_invariance_cpx_cf
+
+
+                8: self.diffuser_hopper, #hopper_differser
+                9: self.GD_hopper,#hopper_GD
+                10: self.Shield_hopper,#hopper_Shield
+                11: self.invariance_hopper,#hopper_invariance
+                12: self.invariance_hopper_cf,#hopper_invariance_cf
+                13: self.invariance_hopper_cpx,#hopper_invariance_cpx
+                14: self.invariance_hopper_cpx_cf,#hopper_invariance_cpx_cf
+            }
+
+
+            
+    
+    
+            method_fn = methods[method_choice]
+           
+            x, b_min = method_fn(x_t, x)
+            ###-------------------------------------ziyi-------------------------
 
             ##########################################walker2d
             # x, b_min = self.GD(x_t, x)  # truncate method
             # x, b_min = self.Shield(x_t, x)  # classifier guidance or potential-based method
             # x, b_min = self.invariance(x_t, x)  # RoS diffuser
             # x, b_min = self.invariance_cf(x_t, x)   #RoS diffuser, closed form
-            x, b_min = self.invariance_cpx(x_t, x)  #RoS diffuser with complex safety specification
+            # x, b_min = self.invariance_cpx(x_t, x)  #RoS diffuser with complex safety specification
             # x, b_min = self.invariance_cpx_cf(x_t, x) #RoS diffuser with complex safety specification, closed form
 
             ##########################################hopper
@@ -228,7 +259,7 @@ class GaussianDiffusion(nn.Module):
 
 
         ##for debug train-------------------------------
-        #return Sample(x, values, chain)
+        ##return Sample(x, values, chain)
         ##return Sample(x, values, chain), b_min
         ##------------------------------
 
@@ -245,6 +276,47 @@ class GaussianDiffusion(nn.Module):
         shape = (batch_size, horizon, self.transition_dim)
 
         return self.p_sample_loop(shape, cond, return_chain = True, **sample_kwargs)    # debug
+    
+
+
+
+#----------------------------------ziyi------------------------------------
+
+    @torch.no_grad()
+    def diffuser(self, x, xp1):
+        x = x.clone()
+        xp1 = xp1.clone()
+
+        x = x.squeeze(0)
+        xp1 = xp1.squeeze(0)
+
+        
+        height = 1.35   #    walker2d  expert 1.35 medium 1.4 replay 1.4
+        height = (height - self.mean[0]) / self.std[0]
+        b = height - xp1[:,6:7]  - 0.1*xp1[:,15:16]
+        b_min = torch.min(b)
+        xp1 = xp1.unsqueeze(0)
+        return xp1, b_min
+    
+    @torch.no_grad()
+    def diffuser_hopper(self, x, xp1):
+        x = x.clone()
+        xp1 = xp1.clone()
+
+        x = x.squeeze(0)
+        xp1 = xp1.squeeze(0)
+
+        
+        height = 1.5   #    hopper  expert 1.6 medium 1.6 replay 1.55
+        height = (height - self.mean[0]) / self.std[0]
+        b = height - xp1[:,3:4]  #- 0.1*xp1[:,9:10]
+        b_min = torch.min(b)
+        xp1 = xp1.unsqueeze(0)
+        return xp1, b_min
+    
+
+    
+#----------------------------------ziyi------------------------------------
 
 ###################################################################walker2d  
     @torch.no_grad()   #only for sampling
@@ -257,7 +329,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.3
+        height = 1.4  #    walker2d  expert 1.35 medium 1.4 replay 1.4
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -297,7 +369,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.3
+        height = 1.4  #    walker2d  expert 1.35 medium 1.4 replay 1.4
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -352,7 +424,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.4
+        height = 1.4 #    walker2d  expert 1.35 medium 1.4 replay 1.4
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -391,7 +463,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.4
+        height = 1.4    #    walker2d  expert 1.35 medium 1.4 replay 1.4
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -447,7 +519,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.5
+        height = 1.5 #    hopper  expert 1.6 medium 1.6 replay 1.55
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -486,7 +558,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.5
+        height = 1.5  #    hopper  expert 1.6 medium 1.6 replay 1.55
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -541,7 +613,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.6
+        height = 1.5  #    hopper  expert 1.6 medium 1.6 replay 1.55
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -580,7 +652,7 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.6
+        height = 1.5    #    hopper  expert 1.6 medium 1.6 replay 1.55
         height = (height - self.mean[0]) / self.std[0]
 
         #CBF
@@ -721,7 +793,7 @@ class GaussianDiffusion(nn.Module):
         nBatch = xp1.shape[0]
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.3  
+        height = 1.4  #    walker2d  expert 1.35 medium 1.4 replay 1.4
         height = (height - self.mean[0]) / self.std[0]
 
         ############################################ceiling
@@ -747,7 +819,7 @@ class GaussianDiffusion(nn.Module):
         nBatch = xp1.shape[0]
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.5 
+        height = 1.5    #    hopper  expert 1.6 medium 1.6 replay 1.55
         height = (height - self.mean[0]) / self.std[0]
 
         ############################################ceiling
@@ -776,11 +848,11 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.4  #1.3
+        height = 1.4    #    walker2d  expert 1.35 medium 1.4 replay 1.4
         height = (height - self.mean[0]) / self.std[0]
 
         ############################################ceiling
-        b = height - xp1[:,6:7]  - 0.1*x[:,15:16] 
+        b = height - xp1[:,6:7] # - 0.1*x[:,15:16] 
 
 
         for k in range(nBatch):
@@ -808,11 +880,11 @@ class GaussianDiffusion(nn.Module):
         ref = xp1 - x
 
         #normalize obstacle: Gaussian, x:0-6 control, 6-23 state
-        height = 1.6  # 1.5
+        height = 1.5   #    hopper  expert 1.6 medium 1.6 replay 1.55
         height = (height - self.mean[0]) / self.std[0]
 
         ############################################ceiling
-        b = height - x[:,3:4] - 0.1*x[:,9:10]  
+        b = height - x[:,3:4] # - 0.1*x[:,9:10]  
 
 
         for k in range(nBatch):

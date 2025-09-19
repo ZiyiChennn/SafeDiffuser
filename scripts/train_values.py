@@ -7,7 +7,7 @@ import pdb
 #-----------------------------------------------------------------------------#
 
 class Parser(utils.Parser):
-    dataset: str = 'hopper-medium-replay-v2'
+    dataset: str = 'hopper-medium-repla-v2'
     config: str = 'config.locomotion'
 
 args = Parser().parse_args('values')

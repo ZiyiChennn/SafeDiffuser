@@ -1,10 +1,11 @@
 logs/
 logs/
-logs/pretrained/
 tabelle/hopper/expert/log/
 tabelle/hopper/medium/log/
 tabelle/hopper/replay/log/
 tabelle/walker/expert/log/
 tabelle/walker/medium/log/
 tabelle/walker/replay/log/
-
+*.pkl
+*.pth
+*.png
