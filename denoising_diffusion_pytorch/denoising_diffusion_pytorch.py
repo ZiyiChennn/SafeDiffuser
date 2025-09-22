@@ -401,7 +401,7 @@ class GaussianDiffusion(nn.Module):
         # no noise when t == 0
         nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
         xp1 = model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
-        b_min = 0 # training only
+        #b_min = 0 # training only
         #######################################################################################choose one
         # xp1, b_min = self.GD(x, xp1)  # classifier guidance or potential based method
         # xp1, b_min = self.Shield(x, xp1) # truncate method
@@ -409,6 +409,19 @@ class GaussianDiffusion(nn.Module):
         # xp1, b_min = self.invariance_cf(x, xp1)  # RoS diffuser closed-form
         # xp1, b_min = self.invariance_cpx(x, xp1) # RoS diffuser with complex safety specification
         # xp1, b_min = self.invariance_cpx_cf(x, xp1) # RoS diffuser with complex safety specification, closed-form
+    
+    #---------------------------ziyi debug---------------------------------
+        method_choice = 2 
+        methods = {
+                1: self.orignial_diffuser,
+                2: self.GD,
+                3: self.Shield,
+                4: self.invariance
+         }
+        method_fn = methods[method_choice]
+           
+        xp1, b_min = method_fn(x, xp1)
+    #--------------------------ziyi debug-----------------------------------
 
         #################### diffuser only, for evaluation only
         # nBatch = x.shape[0]
@@ -440,6 +453,42 @@ class GaussianDiffusion(nn.Module):
         
         return xp1, b_min
     
+  
+
+    #---------------------------ziyi----------------------    
+    @torch.no_grad()
+    def original_diffuser(self, x, xp1):
+    # def orignial_diffuser(self, x, xp1):
+        nBatch = x.shape[0]
+        limits = torch.tensor(np.array([[-2.96705973,  2.96705973],
+            [-2.0943951 ,  2.0943951 ],
+            [-2.96705973,  2.96705973],
+            [-2.0943951 ,  2.0943951 ],
+            [-2.96705973,  2.96705973],
+            [-2.0943951 ,  2.0943951 ],
+            [-3.05432619,  3.05432619]])).to(x.device)
+
+        
+        limits[:,0] = (limits[:,0] - self.mins.to(x.device)) / (self.maxs.to(x.device) - self.mins.to(x.device) + 1e-8)
+        limits[:,1] = (limits[:,1] - self.mins.to(x.device)) / (self.maxs.to(x.device) - self.mins.to(x.device) + 1e-8)
+        # limits = limits[None, None, None].cuda()
+        limits = (limits - 0.5) * 2
+        limits = limits.unsqueeze(0).expand(nBatch, 128, 7, 2)
+        
+
+        x_cp = x.clone()
+        x_cp[:,1:,:] = x_cp[:,:-1,:].clone()
+        #b1 = limits[:,:,:,1]-0.05 - (x[:,:,0:7] + 0.05*(x[:,:,0:7] - x_cp[:,:,0:7])/0.1)
+        #b2 = x[:,:,0:7] + 0.05*(x[:,:,0:7] - x_cp[:,:,0:7])/0.1 - (limits[:,:,:,0] + 0.05)
+
+        b1 = limits[:,:,:,1]-0.05 - x[:,:,0:7]
+        b2 = x[:,:,0:7] - (limits[:,:,:,0] + 0.05)
+
+        b = torch.cat([b1,b2], dim = 0)
+        b_min = b.min()
+        return xp1, b_min
+    
+    #----------------------------ziyi---------------------
     @torch.no_grad()   
     def invariance(self, x, xp1):  # RoS diffuser
 
@@ -758,8 +807,8 @@ class GaussianDiffusion(nn.Module):
         x_cp = xp1.clone()
         x_cp[1:,:] = x_cp[:-1,:].clone()
 
-        b = limits[:,:,1]-0.05 - (xp1[:,0:7] + 0.05*(xp1[:,0:7] - x_cp[:,0:7])/0.1)
-        # b = limits[:,:,1]-0.05 - xp1[:,0:7]
+        # b = limits[:,:,1]-0.05 - (xp1[:,0:7] + 0.05*(xp1[:,0:7] - x_cp[:,0:7])/0.1)
+        b = limits[:,:,1]-0.05 - xp1[:,0:7]
         for k in range(nBatch):
             for j in range(7):
                 if b[k, j] < 0:  # 0
@@ -768,8 +817,8 @@ class GaussianDiffusion(nn.Module):
 
         
 
-        # b2 = xp1[:,0:7] - (limits[:,:,0] + 0.05)
-        b2 = xp1[:,0:7] + 0.05*(xp1[:,0:7] - x_cp[:,0:7])/0.1 - (limits[:,:,0] + 0.05)
+        b2 = xp1[:,0:7] - (limits[:,:,0] + 0.05)
+        # b2 = xp1[:,0:7] + 0.05*(xp1[:,0:7] - x_cp[:,0:7])/0.1 - (limits[:,:,0] + 0.05)
         for k in range(nBatch):
             for j in range(7):
                 if b[k, j] < 0:  # 0
@@ -1214,7 +1263,7 @@ class Trainer(object):
                 ## unnormalize
                 unnormed = self.ds.unnormalize(all_images)
                 savepath = str(self.results_folder / f'_sample-reference.png')
-                plot_samples(savepath, unnormed, self.renderer)
+                #plot_samples(savepath, unnormed, self.renderer)
 
             if self.step % self.save_and_sample_every == 0:
                 milestone = self.step // self.save_and_sample_every
@@ -1226,15 +1275,15 @@ class Trainer(object):
                     # [(-1, self.ds[inds[1]][0][0])], ## last state conditioning
                 ]
 
-                for i, conditions in enumerate(conditions_l):
-                    ## [ -1, 1 ]
-                    all_images = self.ema_model.conditional_sample(batch_size=1, conditions=conditions)
-                    ## [ 0, 1 ]
-                    all_images = (all_images + 1) * 0.5
-                    ## unnormalize
-                    unnormed = self.ds.unnormalize(all_images)
-                    savepath = str(self.results_folder / f'sample-{milestone}-{i}.png')
-                    plot_samples(savepath, unnormed, self.renderer)
+                # for i, conditions in enumerate(conditions_l):
+                #     ## [ -1, 1 ]
+                #     all_images = self.ema_model.conditional_sample(batch_size=1, conditions=conditions)
+                #     ## [ 0, 1 ]
+                #     all_images = (all_images + 1) * 0.5
+                #     ## unnormalize
+                #     unnormed = self.ds.unnormalize(all_images)
+                #     savepath = str(self.results_folder / f'sample-{milestone}-{i}.png')
+                    #plot_samples(savepath, unnormed, self.renderer)
 
 
             self.step += 1

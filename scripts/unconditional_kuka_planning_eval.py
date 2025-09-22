@@ -16,7 +16,7 @@ from denoising_diffusion_pytorch.mixer import MixerUnet as MixerUnetNew
 from denoising_diffusion_pytorch.temporal_attention import TemporalUnet
 from denoising_diffusion_pytorch.utils.rendering import KukaRenderer
 import diffusion.utils as utils
-import environments
+#import environments
 from imageio import get_writer
 import torch.nn as nn
 
@@ -226,6 +226,9 @@ def eval_episode(model, env, dataset, idx=0):
 
     samples_full_list = []
     obs_dim = dataset.obs_dim
+    #----------------ziyi------------
+    all_samples=[]
+    #---------------ziyi---------------
 
     samples = torch.Tensor(state)
     samples = (samples - dataset.mins) / (dataset.maxs - dataset.mins + 1e-8)
@@ -241,17 +244,19 @@ def eval_episode(model, env, dataset, idx=0):
 
     total_samples = []
 
-    for i in range(1):  #3
+    for i in range(3):  #3
         # samples = samples_orig = trainer.ema_model.guided_conditional_sample(model, 1, conditions, cond_idxs[i], stack_idxs[i], place_idxs[i])
         trainer.ema_model.mins = torch.tensor(dataset.mins[:7])
         trainer.ema_model.maxs = torch.tensor(dataset.maxs[:7])
         samples, diffusion, b_min = samples_orig, diffusion_orig, b_min_orig = trainer.ema_model.conditional_sample(1, conditions)
-
+        
         samples = torch.clamp(samples, -1, 1)
         samples_unscale = (samples + 1) * 0.5
         samples = dataset.unnormalize(samples_unscale)
         samples = to_np(samples.squeeze(0).squeeze(0))
-        
+        #------------ziyi------------
+        all_samples.append(samples.cpu())
+        #----------------ziyi-----------
         diffusion = torch.clamp(diffusion, -1, 1)
         diffusion_unscale = (diffusion + 1)*0.5
         diffusion = dataset.unnormalize(diffusion_unscale)
@@ -288,7 +293,14 @@ def eval_episode(model, env, dataset, idx=0):
     np.save("uncond_samples_CBF_cf/uncond_sample_{}.npy".format(idx), np.array(total_samples))
 
 
-    return rewards, b_min
+    #----------------ziyi-----------------------
+    samples_tensor = torch.cat(all_samples, dim=0)  # Concatenate along appropriate dimension
+    pt_dir = "../kuka_dataset/invariance"
+    os.makedirs(pt_dir)
+    torch.save(samples_tensor, f"{pt_dir}/samples_{idx}.pt")
+    #return rewards, b_min
+    return rewards, b_min, samples_full_list
+###-----------------------debug Ziyi-----------------
 
 
 class PosGuide(nn.Module):
@@ -328,8 +340,6 @@ T = 1000
 
 diffusion_path = f'logs/{env_name}/'
 diffusion_epoch = 650
-
-dataset = KukaDataset(H)
 weighted = 5.0
 trial = 0
 
@@ -371,7 +381,7 @@ diffusion = GaussianDiffusion(
     model,
     channels = 2,
     image_size = (H, obs_dim),
-    timesteps = T,   # number of steps
+    timesteps = 1000,   # number of steps
     loss_type = 'l1'    # L1 or L2
 ).cuda()
 
@@ -459,9 +469,13 @@ b_batch = []
 time_batch = []
 import time
 
-for i in tqdm(range(20)):  #100
+for i in tqdm(range(1)):  #100
     start = time.time()
-    reward, b_min = eval_episode(model, env, dataset, idx=i)
+    #reward, b_min = eval_episode(model, env, dataset, idx=i)
+    ##########------------------------debug Ziyi------------------------------
+    reward, b_min, samples_full_list = eval_episode(model, env, dataset, idx=i)
+
+    ##########------------------------dbeug Ziyi------------------------------
     end = time.time()
     # assert False
     rewards.append(reward)
@@ -475,14 +489,14 @@ for i in tqdm(range(20)):  #100
 exit()
 import pdb
 pdb.set_trace()
-
+#----------------------------debug Ziyi---------------
 samples_full_list = np.array(samples_full_list)
 np.save("execution.npy", samples_full_list)
-
+#---------------------------debug Ziyi----------------
 # writer = get_writer("full_execution.mp4")
 
-for frame in frames:
-    writer.append_data(frame)
+# for frame in frames:
+#     writer.append_data(frame)
 
 writer.close()
 import pdb
@@ -505,7 +519,7 @@ samples = dataset.unnormalize(samples_unscale)
 # x = dataset.unnormalize(x)
 
 samples = to_np(samples.squeeze(0).squeeze(0))
-postprocess(samples, renderer)
+#postprocess(samples, renderer)
 
 
 savepath = "execute_sim_11.mp4"

@@ -157,7 +157,7 @@ class StackEnv(gym.Env):
         end = np.array([0.0, 0.0, 1.0])
         viewMatrix = p.computeViewMatrix(location, end, [0, 0, 1])
 
-        self.client = connect()
+        self.client = connect(use_gui=False)
         set_client(self.client)
 
         self.projectionMatrix = projectionMatrix
