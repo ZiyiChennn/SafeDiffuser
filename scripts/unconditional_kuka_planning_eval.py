@@ -4,10 +4,15 @@ import torch
 import pdb
 import pybullet as p
 import os.path as osp
+import random
 
 import gym
 import d4rl
+import sys
+import os
 
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from denoising_diffusion_pytorch.denoising_diffusion_pytorch import GaussianDiffusion
 from denoising_diffusion_pytorch import Trainer
 from denoising_diffusion_pytorch.datasets.tamp import KukaDataset
@@ -255,7 +260,8 @@ def eval_episode(model, env, dataset, idx=0):
         samples = dataset.unnormalize(samples_unscale)
         samples = to_np(samples.squeeze(0).squeeze(0))
         #------------ziyi------------
-        all_samples.append(samples.cpu())
+        samples_tensor = torch.from_numpy(samples).cpu()
+        all_samples.append(samples_tensor)
         #----------------ziyi-----------
         diffusion = torch.clamp(diffusion, -1, 1)
         diffusion_unscale = (diffusion + 1)*0.5
@@ -294,12 +300,11 @@ def eval_episode(model, env, dataset, idx=0):
 
 
     #----------------ziyi-----------------------
-    samples_tensor = torch.cat(all_samples, dim=0)  # Concatenate along appropriate dimension
-    pt_dir = "../kuka_dataset/invariance"
-    os.makedirs(pt_dir)
-    torch.save(samples_tensor, f"{pt_dir}/samples_{idx}.pt")
     #return rewards, b_min
-    return rewards, b_min, samples_full_list
+    #return rewards, b_min, samples_full_list
+    samples_tensor = torch.cat(all_samples, dim=0)
+    #torch.save(samples_tensor, f"{pt_dir}/samples_{idx}.pt")
+    return rewards, b_min, samples_tensor
 ###-----------------------debug Ziyi-----------------
 
 
@@ -334,17 +339,31 @@ def set_obs(env, obs):
 H = 128
 dataset = KukaDataset(H)
 # import pdb; pdb.set_trace()
-env_name = "multiple_cube_kuka_temporal_convnew_real2_128"
-H = 128
-T = 1000
+# env_name = "multiple_cube_kuka_temporal_convnew_real2_128"
+# H = 128
+# T = 1000
 
-diffusion_path = f'logs/{env_name}/'
-diffusion_epoch = 650
+# diffusion_path = f'logs/{env_name}/'
+# diffusion_epoch = 650
+# weighted = 5.0
+# trial = 0
+
+# savepath = f'logs/{env_name}/plans_weighted{weighted}_{H}_{T}/{trial}'
+# utils.mkdir(savepath)
+
+
+#---------------------------------ziyi-------------------------
+
+H = 128
+T = 100
+diffusion_epoch = 250
 weighted = 5.0
 trial = 0
+results_dir = '../kuka_dataset/pretrained_128_(100,)'
 
-savepath = f'logs/{env_name}/plans_weighted{weighted}_{H}_{T}/{trial}'
-utils.mkdir(savepath)
+# 2. 定义完整的模型文件路径，供 trainer.load() 使用
+diffusion_path = f'{results_dir}/model-250.pt'
+#--------------------------------ziyi-----------------------------------------
 
 ## dimensions
 obs_dim = dataset.obs_dim
@@ -381,7 +400,7 @@ diffusion = GaussianDiffusion(
     model,
     channels = 2,
     image_size = (H, obs_dim),
-    timesteps = 1000,   # number of steps
+    timesteps = 100,   # number of steps
     loss_type = 'l1'    # L1 or L2
 ).cuda()
 
@@ -401,7 +420,7 @@ trainer = Trainer(
     gradient_accumulate_every = 2,    # gradient accumulation steps
     ema_decay = 0.995,                # exponential moving average decay
     fp16 = False,                     # turn on mixed precision training with apex
-    results_folder = diffusion_path,
+    results_folder = results_dir,
 )
 
 
@@ -464,16 +483,60 @@ for i in range(4):
 # Yellow block 3
 
 
+##########################################
+#-----------------------ziyi-----------------
 rewards =  []
 b_batch = []
 time_batch = []
-import time
+all_samples_tensors = []
+name_number = 3
+names = {
+        1:"diffuser", #1  5
+        2:"gd", #2  555
+        3:"shield", #3   6
+        4:"invariance", #4   7
+    }
+name = names[name_number]
+scaling=6
+constraints = {
+        1:"1",
+        2:"0.9",
+        3:"0.7",
+        4:"0.2",
+        5:"0.5", #5
+        6:"0.6", #6
+    }
+constraint =constraints[scaling]
 
-for i in tqdm(range(1)):  #100
+pt_dir = f"../kuka_dataset/results/{constraint}/{name}"
+os.makedirs(pt_dir, exist_ok=True)
+
+#------------------ziyi--------------------
+####################################
+
+
+import time
+#------------------------ziyi-----------------
+fixed_seeds = list(range(5))
+
+def set_seed(seed):
+    """设置所有必要的随机种子以确保结果可复现"""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+# 在循环开始前只设置一次种子
+set_seed(42)
+###---------------------------ziyi---------------
+
+for i in tqdm(range(5)):  #100
+
     start = time.time()
     #reward, b_min = eval_episode(model, env, dataset, idx=i)
     ##########------------------------debug Ziyi------------------------------
-    reward, b_min, samples_full_list = eval_episode(model, env, dataset, idx=i)
+    reward, b_min,samples_tensor = eval_episode(model, env, dataset, idx=i)
 
     ##########------------------------dbeug Ziyi------------------------------
     end = time.time()
@@ -486,48 +549,75 @@ for i in tqdm(range(1)):  #100
     print("safety: ", np.min(b_batch))
     print("computation time: ", np.mean(time_batch))
 
-exit()
-import pdb
-pdb.set_trace()
+############---------------------------debug Ziyi-------------------------
+    all_samples_tensors.append(samples_tensor)
+
+#-##############---------------------------------debug ziyi-----------------------
+# exit()
+# import pdb
+# pdb.set_trace()
+
+
+####################################
 #----------------------------debug Ziyi---------------
-samples_full_list = np.array(samples_full_list)
-np.save("execution.npy", samples_full_list)
+#samples_full_list = np.array(samples_full_list)
+#np.save("execution.npy", samples_full_list)
+rewards_tensor = torch.tensor(rewards)
+time_batch_tensor = torch.tensor(time_batch)
+try:
+    torch.save(rewards_tensor, f"{pt_dir}/rewards.pt")
+    torch.save(time_batch_tensor, f"{pt_dir}/computation time.pt")
+except Exception as e:
+    print(f"Error saving rewards or computation time: {e}")
+
+
+try:
+    combined_samples = torch.cat(all_samples_tensors, dim=0)  # 沿第0维合并
+    torch.save(combined_samples, f"{pt_dir}/samples.pt")
+    print(f"Combined samples saved to {pt_dir}/samples.pt")
+except Exception as e:
+    print(f"Error saving combined samples: {e}")
 #---------------------------debug Ziyi----------------
-# writer = get_writer("full_execution.mp4")
+####################################
+
+#writer = get_writer("full_execution.mp4")
 
 # for frame in frames:
-#     writer.append_data(frame)
+#    writer.append_data(frame)
 
-writer.close()
-import pdb
-pdb.set_trace()
-assert False
+# writer.close()
+# import pdb
+# pdb.set_trace()
+# assert False
 
 # samples_next = trainer.ema_model.guided_conditional_sample(model, 1, conditions)
 # samples_next = trainer.ema_model.conditional_sample(1, conditions)
-samples = torch.cat(samples_list, dim=-2)
+
+#------------------------------ziyi--------------
+#samples = torch.cat(samples_list, dim=-2)
 
 
 # samples = trainer.ema_model.conditional_sample(1, conditions)
-samples = torch.clamp(samples, -1, 1)
-samples_unscale = (samples + 1) * 0.5
-samples = dataset.unnormalize(samples_unscale)
+#samples = torch.clamp(samples, -1, 1)
+#samples_unscale = (samples + 1) * 0.5
+#samples = dataset.unnormalize(samples_unscale)
+#--------------------------------ziyi-----------------
 
 
 
 # x = x = (x + 1) * 0.5
 # x = dataset.unnormalize(x)
 
-samples = to_np(samples.squeeze(0).squeeze(0))
+#samples = to_np(samples.squeeze(0).squeeze(0))
 #postprocess(samples, renderer)
-
+                
 
 savepath = "execute_sim_11.mp4"
 
 savepath = savepath.replace('.png', '.mp4')
 writer = get_writer(savepath)
-
-for img in imgs:
-    writer.append_data(img)
-
+#------------------------ziyi----------------
+#for img in imgs:
+#    writer.append_data(img)
+#--------------------------ziyi---------------
 writer.close()

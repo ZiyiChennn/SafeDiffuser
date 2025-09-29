@@ -1,9 +1,15 @@
-import numpy as np
+
 import torch
 import pdb
 
 import gym
 import d4rl
+
+import sys
+import os
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from denoising_diffusion_pytorch.datasets.tamp import KukaDataset
 from denoising_diffusion_pytorch import Unet, GaussianDiffusion, Trainer
@@ -14,6 +20,9 @@ from denoising_diffusion_pytorch.utils.rendering import KukaRenderer
 #import environments
 import sys
 sys.path.append('/data/vision/billf/scratch/yilundu/pddlstream')
+
+
+B_IsTrainFromPreTrained = True
 
 #### dataset
 H = 128
@@ -73,6 +82,26 @@ diffusion = GaussianDiffusion(
     loss_type = 'l1'    # L1 or L2
 ).cuda()
 
+train_num_steps = 700000
+resultfolder = f'/root/kuka_dataset/multiple_cube_kuka_convnew_real2'
+
+trainer = Trainer(
+    diffusion,
+    dataset,
+    None,
+    train_batch_size = 32,
+    train_lr = 2e-5,
+    train_num_steps = train_num_steps,         # total training steps
+    gradient_accumulate_every = 2,    # gradient accumulation steps
+    ema_decay = 0.995,                # exponential moving average decay
+    fp16 = False,                     # turn on mixed precision training with apex
+    results_folder = f'{resultfolder}_{H}_{timesteps}',
+)
+if B_IsTrainFromPreTrained:
+    trainer.load(200)
+    trainer.set_result_folder(f'../kuka_dataset/pretrained_{H}_{timesteps}')
+
+
 #### test
 print('testing forward')
 x = dataset[0][0].view(1, H, obs_dim).cuda()
@@ -84,17 +113,6 @@ print('done')
 # pdb.set_trace()
 ####
 
-trainer = Trainer(
-    diffusion,
-    dataset,
-    None,
-    train_batch_size = 32,
-    train_lr = 2e-5,
-    train_num_steps = 700000,         # total training steps
-    gradient_accumulate_every = 2,    # gradient accumulation steps
-    ema_decay = 0.995,                # exponential moving average decay
-    fp16 = False,                     # turn on mixed precision training with apex
-    results_folder = f'../kuka_dataset/multiple_cube_kuka_convnew_real2_{H}_{timesteps}',
-)
+
 
 trainer.train()

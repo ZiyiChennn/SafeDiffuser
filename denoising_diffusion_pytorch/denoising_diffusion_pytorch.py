@@ -31,6 +31,18 @@ except:
 
 # helpers functions
 
+scaling=6
+constraints = {
+        1:"1",
+        2:"0.9",
+        3:"0.7",
+        4:"0.2",
+        5:"0.5",
+        6:"0.6"
+    }
+constraint =constraints[scaling]
+constraint_int = float(constraint)
+
 def exists(x):
     return x is not None
 
@@ -317,9 +329,11 @@ class GaussianDiffusion(nn.Module):
         *,
         image_size,
         channels = 1,
-        timesteps = 1000,
+        timesteps = 100, #1000
         loss_type = 'l1',
-        betas = None
+        betas = None,
+    
+
     ):
         super().__init__()
         self.channels = channels
@@ -404,16 +418,16 @@ class GaussianDiffusion(nn.Module):
         #b_min = 0 # training only
         #######################################################################################choose one
         # xp1, b_min = self.GD(x, xp1)  # classifier guidance or potential based method
-        # xp1, b_min = self.Shield(x, xp1) # truncate method
+        # xp1, b_min = self.Shield(x, xp1) # truncate methodX
         # xp1, b_min = self.invariance(x, xp1) # RoS diffuser
         # xp1, b_min = self.invariance_cf(x, xp1)  # RoS diffuser closed-form
         # xp1, b_min = self.invariance_cpx(x, xp1) # RoS diffuser with complex safety specification
         # xp1, b_min = self.invariance_cpx_cf(x, xp1) # RoS diffuser with complex safety specification, closed-form
     
-    #---------------------------ziyi debug---------------------------------
-        method_choice = 2 
+    #--------------------------ziyi debug---------------------------------
+        method_choice = 3
         methods = {
-                1: self.orignial_diffuser,
+                1: self.original_diffuser,
                 2: self.GD,
                 3: self.Shield,
                 4: self.invariance
@@ -453,7 +467,7 @@ class GaussianDiffusion(nn.Module):
         
         return xp1, b_min
     
-  
+   
 
     #---------------------------ziyi----------------------    
     @torch.no_grad()
@@ -467,8 +481,9 @@ class GaussianDiffusion(nn.Module):
             [-2.96705973,  2.96705973],
             [-2.0943951 ,  2.0943951 ],
             [-3.05432619,  3.05432619]])).to(x.device)
-
-        
+#---------------ziyi---------------
+        limits = limits*constraint_int
+#---------------ziyi---------------        
         limits[:,0] = (limits[:,0] - self.mins.to(x.device)) / (self.maxs.to(x.device) - self.mins.to(x.device) + 1e-8)
         limits[:,1] = (limits[:,1] - self.mins.to(x.device)) / (self.maxs.to(x.device) - self.mins.to(x.device) + 1e-8)
         # limits = limits[None, None, None].cuda()
@@ -499,7 +514,9 @@ class GaussianDiffusion(nn.Module):
             [-2.96705973,  2.96705973],
             [-2.0943951 ,  2.0943951 ],
             [-3.05432619,  3.05432619]])).to(x.device)
-        
+#---------------ziyi---------------
+        limits = limits*constraint_int
+#---------------ziyi---------------  
         x = x.squeeze(0)
         xp1 = xp1.squeeze(0)
 
@@ -789,6 +806,9 @@ class GaussianDiffusion(nn.Module):
             [-2.96705973,  2.96705973],
             [-2.0943951 ,  2.0943951 ],
             [-3.05432619,  3.05432619]])).to(x.device)
+        #---------------ziyi---------------
+        limits = limits*constraint_int
+#---------------ziyi---------------  
         
         x = x.squeeze(0)
         xp1 = xp1.squeeze(0)
@@ -839,7 +859,9 @@ class GaussianDiffusion(nn.Module):
             [-2.96705973,  2.96705973],
             [-2.0943951 ,  2.0943951 ],
             [-3.05432619,  3.05432619]])).to(x0.device)
-
+#---------------ziyi---------------
+        limits = limits*constraint_int
+#---------------ziyi---------------  
         x = x0.clone()
         xp1 = xp10.clone()
 
@@ -1209,6 +1231,10 @@ class Trainer(object):
         self.results_folder.mkdir(exist_ok = True)
 
         self.reset_parameters()
+
+    def set_result_folder(self,results_folder):
+        self.results_folder = Path(results_folder)
+        self.results_folder.mkdir(exist_ok = True)
 
     def reset_parameters(self):
         self.ema_model.load_state_dict(self.model.state_dict())
